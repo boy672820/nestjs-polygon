@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApproveDto } from '@providers/polygon/dto';
+import { ApproveDto, TransferDto } from '@providers/polygon/dto';
 import { TokenService } from './service';
 
 @Controller('token')
@@ -9,9 +9,7 @@ export class TokenController {
   @Post('approve')
   async approve(@Body() { amount }: ApproveDto) {
     try {
-      const receipt = await this.tokenService.approve(amount);
-
-      return receipt;
+      return await this.tokenService.approve(amount);
     } catch (e) {
       console.log(e);
 
@@ -22,9 +20,18 @@ export class TokenController {
   @Get('balance/:accountAddress')
   async getBalance(@Param('accountAddress') accountAddress: string) {
     try {
-      const balance = await this.tokenService.getBalance(accountAddress);
+      return await this.tokenService.getBalance(accountAddress);
+    } catch (e) {
+      console.log(e);
 
-      return balance;
+      return null;
+    }
+  }
+
+  @Post('transfer')
+  async transfer(@Body() data: TransferDto) {
+    try {
+      return await this.tokenService.transfer(data);
     } catch (e) {
       console.log(e);
 

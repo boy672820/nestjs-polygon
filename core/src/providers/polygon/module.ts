@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { BupConfigModule } from '@config/bup';
 import { EthereumConfigModule } from '@config/ethereum';
 import { PolygonConfigModule } from '@config/polygon';
-import { polygonClient } from './provider';
+import { polygonProviders } from './providers';
 import { PolygonService } from './service';
 
 @Module({
   imports: [PolygonConfigModule, EthereumConfigModule, BupConfigModule],
-  providers: [PolygonService, polygonClient],
+  providers: [PolygonService, ...polygonProviders],
   exports: [PolygonService],
 })
 export class PolygonModule {}
