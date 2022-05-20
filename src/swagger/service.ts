@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '@providers/postgresql/prisma';
-import { AuthServiceFactory } from '@libs/auth';
 import * as argon2 from 'argon2';
 
 @Injectable()
-export class AuthService implements AuthServiceFactory {
+export class SwaggerProtectService {
   constructor(private readonly prisma: PrismaService) {}
 
   async validateUser(email: string, password: string): Promise<User> {
@@ -22,9 +21,5 @@ export class AuthService implements AuthServiceFactory {
     }
 
     return user;
-  }
-
-  async validateSwagger(token: string): Promise<boolean> {
-    return true;
   }
 }

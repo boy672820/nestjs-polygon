@@ -33,9 +33,9 @@ export const polygonClient = {
         },
       },
       child: {
-        provider: new Wallet(polygonConfig.basePrivkey, childProvider),
+        provider: new Wallet(ethereumConfig.basePrivkey, childProvider),
         defaultConfig: {
-          from: polygonConfig.baseAddress,
+          from: ethereumConfig.baseAddress,
         },
       },
     });

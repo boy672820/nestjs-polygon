@@ -10,6 +10,14 @@ export class TokenService {
     return this.polygonService.approve(amount);
   }
 
+  deposit(amount: string, accountAddress: string) {
+    return this.polygonService.deposit(amount, accountAddress);
+  }
+
+  getAllowance(accountAddress: string) {
+    return this.polygonService.getAllowance(accountAddress);
+  }
+
   getBalance(accountAddress: string) {
     return this.polygonService.getBalance(accountAddress);
   }

@@ -3,7 +3,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { BupConfigService } from '@config/bup';
 import { ERC20 } from '@maticnetwork/maticjs/dist/ts/pos/erc20';
 import { ethers, Wallet } from 'ethers';
-import * as abi from '../../../../abi/bup.json';
 import { TransferDto } from './dto/transfer';
 
 @Injectable()
@@ -13,31 +12,42 @@ export class PolygonService {
     @Inject('POLYGON_SIGNER') private readonly signer: Wallet,
     private readonly bupConfig: BupConfigService,
   ) {
-    this.erc20 = this.posClient.erc20(this.bupConfig.ethereumAddress, true);
+    this.parent = this.posClient.erc20(this.bupConfig.ethereumAddress, true);
+    this.child = this.posClient.erc20(this.bupConfig.polygonAddress);
   }
 
-  private readonly erc20: ERC20;
+  private readonly parent: ERC20;
+  private readonly child: ERC20;
 
   async approve(amount: string) {
-    const approve = await this.erc20.approve(amount);
-    const receipt = approve.getReceipt();
+    const value = ethers.utils.parseEther(amount).toString();
+    const result = await this.parent.approve(value);
+    const receipt = result.getReceipt();
 
     return receipt;
   }
 
-  getBalance(accountAddress: string) {
-    return this.erc20.getBalance(accountAddress);
+  async deposit(amount: string, accountAddress: string) {
+    const value = ethers.utils.parseEther(amount).toString();
+    const result = await this.parent.deposit(value, accountAddress);
+    const receipt = result.getReceipt();
+
+    return receipt;
   }
 
-  async transfer({ to, value }: TransferDto) {
-    const bup = new ethers.Contract(
-      this.bupConfig.polygonAddress,
-      abi,
-      this.signer,
-    );
+  getAllowance(accountAddress: string) {
+    return this.parent.getAllowance(accountAddress);
+  }
 
-    const tx = await bup.transfer(to, ethers.utils.parseEther(value));
+  getBalance(accountAddress: string) {
+    return this.child.getBalance(accountAddress);
+  }
 
-    return tx.wait();
+  async transfer({ to, amount }: TransferDto) {
+    const value = ethers.utils.parseEther(amount).toString();
+    const result = await this.parent.transfer(value, to);
+    const receipt = result.getReceipt();
+
+    return receipt;
   }
 }

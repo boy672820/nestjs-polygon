@@ -3,30 +3,30 @@ import { ValidationPipe } from '@nestjs/common';
 import { PrismaService } from '@core/providers/postgresql/prisma';
 import { AppConfigService } from '@config/app';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { createSwagger } from './swagger/config';
+import * as cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { useContainer } from 'class-validator';
 
 declare const module: any;
 
 async function createApp() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Bind ValidationPipe
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      disableErrorMessages: false,
+      enableDebugMessages: true,
+    }),
+  );
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   // Shutdown prisma after close application
   const prismaService = app.get(PrismaService);
   await prismaService.enableShutdownHooks(app);
 
-  // Swagger
-  const config = new DocumentBuilder()
-    .setTitle(process.env.APP_NAME || 'NeBo')
-    .setDescription(process.env.APP_DESCRIPTION || 'Nest.js boilerplate')
-    .setVersion(process.env.APP_VERSION || '')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-
-  SwaggerModule.setup('api', app, document);
+  app.use(cookieParser()); // @!important need set cookie-parser before setup protect middleware
 
   return app;
 }
@@ -40,7 +40,9 @@ async function bootstrap() {
   const appConfig = app.get(AppConfigService);
   const port = appConfig.port;
 
-  await app.listen(port);
+  await createSwagger(app).listen(port, () => {
+    console.log(`Application is running on: ${port}`);
+  });
 
   // HMR
   if (module.hot) {
